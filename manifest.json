@@ -1,0 +1,10 @@
+{
+	"id": "grab-a-prompt",
+	"name": "Grab a Prompt",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Ready-made AI prompt templates for writers — research, summarizing, editing, proofing, and more. Pick a template, auto-fill it with your document or selection, and copy to clipboard for ChatGPT, Claude, Gemini, or any LLM.",
+	"author": "Grab a Prompt",
+	"authorUrl": "https://grabaprompt.com",
+	"isDesktopOnly": false
+}

@@ -1,0 +1,309 @@
+/* Grab a Prompt — Obsidian Plugin Styles */
+
+/* Container */
+.grab-a-prompt-container {
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+/* Search */
+.grab-a-prompt-search {
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grab-a-prompt-search-input {
+	width: 100%;
+	padding: 6px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+}
+
+.grab-a-prompt-search-input:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+}
+
+/* Template list */
+.grab-a-prompt-list {
+	flex: 1;
+	overflow-y: auto;
+	padding: 4px 0;
+}
+
+/* Category */
+.grab-a-prompt-category {
+	padding: 8px 12px 4px;
+}
+
+.grab-a-prompt-category-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 2px;
+}
+
+.grab-a-prompt-category-symbol {
+	color: var(--text-accent);
+	font-size: 10px;
+}
+
+.grab-a-prompt-category-name {
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	text-transform: uppercase;
+	color: var(--text-normal);
+	letter-spacing: 0.05em;
+}
+
+.grab-a-prompt-category-subheader {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	font-style: italic;
+	margin-bottom: 6px;
+	padding-left: 16px;
+}
+
+/* Template item */
+.grab-a-prompt-item {
+	position: relative;
+	padding: 8px 12px;
+	margin: 2px 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-left: 3px solid var(--interactive-accent);
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.grab-a-prompt-item:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.grab-a-prompt-item-name {
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	color: var(--text-normal);
+	margin-bottom: 2px;
+}
+
+.grab-a-prompt-item-desc {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	line-height: 1.4;
+	padding-right: 24px;
+}
+
+/* Disabled state for hasFocusText templates with no selection */
+.grab-a-prompt-item-disabled {
+	opacity: 0.45;
+	border-left-color: var(--text-muted);
+}
+
+.grab-a-prompt-item-disabled:hover {
+	background-color: transparent;
+}
+
+/* Favorite star button — top right, visible on hover (always visible when active) */
+.grab-a-prompt-item-star-btn {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	background: none;
+	color: var(--text-muted);
+	font-size: 14px;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.grab-a-prompt-item:hover .grab-a-prompt-item-star-btn {
+	opacity: 1;
+}
+
+.grab-a-prompt-item-star-active {
+	opacity: 1;
+	color: var(--text-accent);
+}
+
+.grab-a-prompt-item-star-btn:hover {
+	color: var(--text-accent);
+}
+
+/* Favorites category star symbol */
+.grab-a-prompt-fav-symbol {
+	color: var(--text-accent);
+}
+
+/* "View details" button — bottom right, visible on hover */
+.grab-a-prompt-item-detail-btn {
+	position: absolute;
+	bottom: 6px;
+	right: 6px;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-muted);
+	font-size: 12px;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.grab-a-prompt-item:hover .grab-a-prompt-item-detail-btn {
+	opacity: 1;
+}
+
+.grab-a-prompt-item-detail-btn:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+/* Detail view */
+.grab-a-prompt-back-btn {
+	background: none;
+	border: none;
+	color: var(--text-accent);
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+	padding: 8px 12px;
+	text-align: left;
+}
+
+.grab-a-prompt-back-btn:hover {
+	color: var(--text-accent-hover);
+	text-decoration: underline;
+}
+
+.grab-a-prompt-detail-name-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 4px 12px 4px;
+	margin-top: 8px;
+}
+
+.grab-a-prompt-detail-name {
+	font-size: var(--font-ui-medium);
+	font-weight: 700;
+	color: var(--text-normal);
+}
+
+.grab-a-prompt-detail-star-btn {
+	background: none;
+	border: none;
+	font-size: 18px;
+	cursor: pointer;
+	color: var(--text-muted);
+	padding: 0 4px;
+	transition: color 0.15s ease;
+}
+
+.grab-a-prompt-detail-star-btn:hover {
+	color: var(--text-accent);
+}
+
+.grab-a-prompt-detail-star-active {
+	color: var(--text-accent);
+}
+
+.grab-a-prompt-detail-desc {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	padding: 0 12px 8px;
+	line-height: 1.4;
+}
+
+.grab-a-prompt-prompt-preview {
+	padding: 8px 12px;
+	margin: 0 12px 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-secondary);
+	font-size: var(--font-ui-smaller);
+	line-height: 1.6;
+	color: var(--text-muted);
+	max-height: 300px;
+	overflow-y: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+/* Placeholder badges */
+.grab-a-prompt-badge {
+	display: inline;
+	background-color: var(--background-modifier-border);
+	color: var(--text-normal);
+	padding: 1px 5px;
+	border-radius: 4px;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-smaller);
+}
+
+/* Hint */
+.grab-a-prompt-hint {
+	padding: 4px 12px;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-warning);
+	font-style: italic;
+}
+
+/* Copy button */
+.grab-a-prompt-copy-btn {
+	margin: 8px 12px;
+	padding: 8px 16px;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	transition: opacity 0.15s ease;
+}
+
+.grab-a-prompt-copy-btn:hover {
+	opacity: 0.9;
+}
+
+.grab-a-prompt-btn-disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* Suggest modal styles */
+.grab-a-prompt-suggestion-name {
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.grab-a-prompt-suggestion-desc {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	margin-top: 2px;
+}
+
+.grab-a-prompt-suggestion-category {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+	margin-top: 2px;
+	font-style: italic;
+}

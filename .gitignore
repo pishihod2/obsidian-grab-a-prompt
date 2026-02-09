@@ -1,0 +1,11 @@
+# Build output
+main.js
+
+# npm
+node_modules
+
+# Generated data (rebuilt from templates.json)
+src/data/templates.ts
+
+# Claude Code
+CLAUDE.md
