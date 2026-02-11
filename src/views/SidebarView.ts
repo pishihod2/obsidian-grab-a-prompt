@@ -63,16 +63,17 @@ export class SidebarView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Grab a Prompt";
+    return "Grab a prompt";
   }
 
   getIcon(): string {
     return "layout-grid";
   }
 
-  async onOpen() {
+  onOpen(): Promise<void> {
     this.initCollapsedCategories();
     this.renderList();
+    return Promise.resolve();
   }
 
   private initCollapsedCategories() {
@@ -93,12 +94,13 @@ export class SidebarView extends ItemView {
 
     if (toCollapse.length > 0) {
       collapsed.push(...toCollapse);
-      this.plugin.saveSettings();
+      void this.plugin.saveSettings();
     }
   }
 
-  async onClose() {
+  onClose(): Promise<void> {
     this.unregisterSelectionListener();
+    return Promise.resolve();
   }
 
   private getEditor() {
@@ -207,8 +209,8 @@ export class SidebarView extends ItemView {
       cls: "grab-a-prompt-category-name",
       text: "Favorites",
     });
-    favHeader.addEventListener("click", async () => {
-      await this.toggleCategoryCollapsed(categoryKey);
+    favHeader.addEventListener("click", () => {
+      void this.toggleCategoryCollapsed(categoryKey);
       this.renderList(this.currentFilter);
     });
 
@@ -248,8 +250,8 @@ export class SidebarView extends ItemView {
     });
     header.createSpan({ cls: "grab-a-prompt-category-name", text: name });
 
-    header.addEventListener("click", async () => {
-      await this.toggleCategoryCollapsed(categoryKey);
+    header.addEventListener("click", () => {
+      void this.toggleCategoryCollapsed(categoryKey);
       this.renderList(this.currentFilter);
     });
 
@@ -277,7 +279,7 @@ export class SidebarView extends ItemView {
     const categoryEl = listContainer.createDiv({
       cls: "grab-a-prompt-category",
     });
-    const header = this.renderSectionHeader(categoryEl, "My Templates", categoryKey);
+    const header = this.renderSectionHeader(categoryEl, "My templates", categoryKey);
 
     const newBtn = header.createEl("button", {
       cls: "grab-a-prompt-new-template-btn",
@@ -335,14 +337,14 @@ export class SidebarView extends ItemView {
 
     section.createDiv({
       cls: "grab-a-prompt-quick-prompt-label",
-      text: "Quick Prompt",
+      text: "Quick prompt",
     });
 
     const input = section.createEl("textarea", {
       cls: "grab-a-prompt-quick-prompt-input",
       attr: {
         placeholder:
-          "Type a prompt and hit Enter to copy to clipboard (your full note will be added automatically)",
+          "Type a prompt and press enter to copy to clipboard (your full note will be added automatically)",
         rows: "3",
       },
     });
@@ -370,7 +372,7 @@ export class SidebarView extends ItemView {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        handleSend();
+        void handleSend();
       }
     });
   }
@@ -415,7 +417,7 @@ export class SidebarView extends ItemView {
 
     // Click = copy prompt
     itemEl.addEventListener("click", () => {
-      this.handleItemCopy(template);
+      void this.handleItemCopy(template);
     });
   }
 
@@ -449,7 +451,7 @@ export class SidebarView extends ItemView {
     // Back button
     const backBtn = container.createEl("button", {
       cls: "grab-a-prompt-back-btn",
-      text: "\u2190 Back",
+      text: "\u2190 back",
     });
     backBtn.addEventListener("click", () => {
       this.renderList();
@@ -477,7 +479,7 @@ export class SidebarView extends ItemView {
       const detailEditBtn = actionsRow.createEl("button", {
         cls: "grab-a-prompt-detail-action-btn",
         attr: { "aria-label": "Edit template" },
-        text: "\u270E Edit",
+        text: "\u270E edit",
       });
       detailEditBtn.addEventListener("click", () => {
         const ut = this.plugin.settings.userTemplates.find(
@@ -489,13 +491,13 @@ export class SidebarView extends ItemView {
       const detailDeleteBtn = actionsRow.createEl("button", {
         cls: "grab-a-prompt-detail-action-btn grab-a-prompt-detail-delete-btn",
         attr: { "aria-label": "Delete template" },
-        text: "\u2715 Delete",
+        text: "\u2715 delete",
       });
       detailDeleteBtn.addEventListener("click", () => {
         new ConfirmModal(
           this.app,
           "Delete this template?",
-          () => this.plugin.deleteUserTemplate(template.id as string),
+          () => { void this.plugin.deleteUserTemplate(template.id as string); },
         ).open();
       });
     }
@@ -547,7 +549,7 @@ export class SidebarView extends ItemView {
       this.registerSelectionListener(updateCopyState);
     }
 
-    copyBtn.addEventListener("click", async () => {
+    copyBtn.addEventListener("click", () => {
       const editor = this.getEditor();
       if (!editor) {
         new Notice("No active editor \u2014 open a note first");
@@ -555,14 +557,14 @@ export class SidebarView extends ItemView {
       }
 
       const assembled = assemblePrompt(template, editor);
-      await navigator.clipboard.writeText(assembled);
+      void navigator.clipboard.writeText(assembled).then(() => {
+        copyBtn.setText("Copied!");
+        setTimeout(() => {
+          copyBtn.setText("Copy prompt + text to clipboard");
+        }, 3000);
 
-      copyBtn.setText("Copied!");
-      setTimeout(() => {
-        copyBtn.setText("Copy prompt + text to clipboard");
-      }, 3000);
-
-      new Notice("Prompt copied to clipboard");
+        new Notice("Prompt copied to clipboard");
+      });
     });
   }
 
@@ -585,13 +587,14 @@ export class SidebarView extends ItemView {
     btn.setText(isFav ? "\u2605" : "\u2606");
     if (isFav) btn.addClass(activeCls);
 
-    btn.addEventListener("click", async (e) => {
+    btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      await this.toggleFavorite(template);
-      const nowFav = this.isFavorite(template);
-      btn.setText(nowFav ? "\u2605" : "\u2606");
-      btn.toggleClass(activeCls, nowFav);
-      opts?.afterToggle?.();
+      void this.toggleFavorite(template).then(() => {
+        const nowFav = this.isFavorite(template);
+        btn.setText(nowFav ? "\u2605" : "\u2606");
+        btn.toggleClass(activeCls, nowFav);
+        opts?.afterToggle?.();
+      });
     });
 
     return btn;

@@ -34,14 +34,15 @@ export class TemplateSuggestModal extends SuggestModal<Template> {
 		}
 	}
 
-	async onChooseSuggestion(template: Template) {
+	onChooseSuggestion(template: Template) {
 		if (!canCopy(template, this.editor.getSelection())) {
 			new Notice("Select text in your editor first — this template requires a selection");
 			return;
 		}
 
 		const assembled = assemblePrompt(template, this.editor);
-		await navigator.clipboard.writeText(assembled);
-		new Notice(`Copied "${template.name}" prompt to clipboard`);
+		void navigator.clipboard.writeText(assembled).then(() => {
+			new Notice(`Copied "${template.name}" prompt to clipboard`);
+		});
 	}
 }

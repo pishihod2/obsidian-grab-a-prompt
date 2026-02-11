@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf } from "obsidian";
+import { Plugin } from "obsidian";
 import { SidebarView, VIEW_TYPE } from "./views/SidebarView";
 import { SelectionBubble } from "./views/SelectionBubble";
 import { GrabAPromptSettingTab, DEFAULT_SETTINGS } from "./settings";
@@ -19,23 +19,23 @@ export default class GrabAPromptPlugin extends Plugin {
 		this.registerView(VIEW_TYPE, (leaf) => new SidebarView(leaf, this));
 
 		// Ribbon icon to open/reveal the sidebar
-		this.addRibbonIcon("layout-grid", "Grab a Prompt", () => {
-			this.activateView();
+		this.addRibbonIcon("layout-grid", "Grab a prompt", () => {
+			void this.activateView();
 		});
 
 		// Open the view once layout is ready (first install or if user closed it)
 		this.app.workspace.onLayoutReady(() => {
 			if (this.app.workspace.getLeavesOfType(VIEW_TYPE).length === 0) {
-				this.activateView();
+				void this.activateView();
 			}
 		});
 
 		// Command to reopen if the user closes it
 		this.addCommand({
 			id: "open-sidebar",
-			name: "Open Grab a Prompt",
+			name: "Open sidebar",
 			callback: () => {
-				this.activateView();
+				void this.activateView();
 			},
 		});
 
@@ -60,8 +60,6 @@ export default class GrabAPromptPlugin extends Plugin {
 	}
 
 	onunload() {
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE);
-
 		if (this.selectionBubble) {
 			this.selectionBubble.destroy();
 			this.selectionBubble = null;
@@ -89,21 +87,11 @@ export default class GrabAPromptPlugin extends Plugin {
 		let [leaf] = workspace.getLeavesOfType(VIEW_TYPE);
 
 		if (!leaf) {
-			// Add as a tab in the right sidebar's existing tab group
-			// (getRightLeaf(false) hijacks a leaf, true creates a separate split)
-			const tabGroup = (workspace.rightSplit as any).children[0];
-			if (tabGroup) {
-				leaf = workspace.createLeafInParent(
-					tabGroup as any,
-					tabGroup.children.length,
-				);
-			} else {
-				leaf = workspace.getRightLeaf(false)!;
-			}
+			leaf = workspace.getRightLeaf(false)!;
 			await leaf.setViewState({ type: VIEW_TYPE, active: true });
 		}
 
-		workspace.revealLeaf(leaf);
+		await workspace.revealLeaf(leaf);
 	}
 
 	async addUserTemplate(ut: UserTemplate): Promise<void> {

@@ -30,7 +30,7 @@ export interface UserTemplate {
 
 export const USER_TEMPLATE_CATEGORY: Category = {
 	id: -1,
-	name: "My Templates",
+	name: "My templates",
 	subheader: null,
 	position: -1,
 };

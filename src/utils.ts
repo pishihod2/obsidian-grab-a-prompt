@@ -32,9 +32,9 @@ export function getActiveMarkdownView(app: App): MarkdownView | null {
 	if (leaves.length === 0) return null;
 
 	let best = leaves[0];
-	let bestTime = (best as any).activeTime ?? 0;
+	let bestTime = (best as unknown as { activeTime?: number }).activeTime ?? 0;
 	for (let i = 1; i < leaves.length; i++) {
-		const t = (leaves[i] as any).activeTime ?? 0;
+		const t = (leaves[i] as unknown as { activeTime?: number }).activeTime ?? 0;
 		if (t > bestTime) {
 			best = leaves[i];
 			bestTime = t;

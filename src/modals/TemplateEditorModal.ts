@@ -17,7 +17,7 @@ export class TemplateEditorModal extends Modal {
 		contentEl.addClass("grab-a-prompt-editor-modal");
 
 		contentEl.createEl("h3", {
-			text: this.existing ? "Edit Template" : "New Template",
+			text: this.existing ? "Edit template" : "New template",
 		});
 
 		// Name field
@@ -80,7 +80,7 @@ export class TemplateEditorModal extends Modal {
 			cls: "grab-a-prompt-editor-save-btn",
 		});
 
-		saveBtn.addEventListener("click", async () => {
+		saveBtn.addEventListener("click", () => {
 			const name = nameInput.value.trim();
 			const prompt = promptInput.value.trim();
 			const shortDescription = descInput.value.trim();
@@ -91,25 +91,24 @@ export class TemplateEditorModal extends Modal {
 				return;
 			}
 
-			if (this.existing) {
-				await this.plugin.updateUserTemplate(this.existing.id, {
+			const save = this.existing
+				? this.plugin.updateUserTemplate(this.existing.id, {
 					name,
 					prompt,
 					shortDescription,
 					hasFocusText: checkbox.checked,
-				});
-			} else {
-				const ut: UserTemplate = {
+				})
+				: this.plugin.addUserTemplate({
 					id: crypto.randomUUID(),
 					name,
 					prompt,
 					shortDescription,
 					hasFocusText: checkbox.checked,
-				};
-				await this.plugin.addUserTemplate(ut);
-			}
+				});
 
-			this.close();
+			void save.then(() => {
+				this.close();
+			});
 		});
 
 		cancelBtn.addEventListener("click", () => {

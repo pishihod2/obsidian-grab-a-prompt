@@ -473,8 +473,7 @@
 }
 
 /* Settings tab */
-.grab-a-prompt-settings > p,
-.grab-a-prompt-settings > h3 {
+.grab-a-prompt-settings > p {
 	padding: 0 18px;
 }
 
@@ -582,6 +581,10 @@
 		opacity: 1;
 		transform: translateY(0) scale(1);
 	}
+}
+
+.grab-a-prompt-bubble-hidden {
+	display: none;
 }
 
 .grab-a-prompt-bubble-trigger {

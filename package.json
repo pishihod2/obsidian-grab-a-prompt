@@ -29,9 +29,13 @@
   "author": "grabaprompt.com",
   "license": "MIT",
   "devDependencies": {
+    "@codemirror/view": "^6.35.3",
     "@types/node": "^22.0.0",
+    "@typescript-eslint/parser": "^8.55.0",
     "builtin-modules": "^4.0.0",
     "esbuild": "0.24.2",
+    "eslint": "^9.39.2",
+    "eslint-plugin-obsidianmd": "^0.1.9",
     "obsidian": "latest",
     "tsx": "^4.0.0",
     "typescript": "5.7.3"

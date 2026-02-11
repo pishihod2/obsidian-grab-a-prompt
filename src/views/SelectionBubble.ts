@@ -1,14 +1,18 @@
 import { MarkdownView, Notice, setIcon, type EventRef } from "obsidian";
-import type { EditorView } from "@codemirror/view";
 import type GrabAPromptPlugin from "../main";
 import { getActiveMarkdownView } from "../utils";
 import { assembleSelectionBubblePrompt } from "../prompt/assemble";
+
+interface CmView {
+	scrollDOM: HTMLElement;
+	coordsAtPos(pos: number, side?: number): { top: number; bottom: number; left: number; right: number } | null;
+}
 
 interface SelectionSnapshot {
 	selectedText: string;
 	documentText: string;
 	offset: number;
-	cmView: EditorView;
+	cmView: CmView;
 }
 
 export class SelectionBubble {
@@ -97,8 +101,8 @@ export class SelectionBubble {
 		this.showBubble();
 	}
 
-	private getCmView(mdView: MarkdownView): EditorView | null {
-		const cm = (mdView.editor as any).cm;
+	private getCmView(mdView: MarkdownView): CmView | null {
+		const cm = (mdView.editor as unknown as { cm?: CmView }).cm;
 		return cm ?? null;
 	}
 
@@ -134,11 +138,11 @@ export class SelectionBubble {
 
 		const coords = this.snapshot.cmView.coordsAtPos(this.snapshot.offset, 1);
 		if (!coords) {
-			this.bubbleEl.style.display = "none";
+			this.bubbleEl.addClass("grab-a-prompt-bubble-hidden");
 			return;
 		}
 
-		this.bubbleEl.style.display = "";
+		this.bubbleEl.removeClass("grab-a-prompt-bubble-hidden");
 
 		const GAP = 8;
 		const bubbleHeight = this.bubbleEl.offsetHeight || 32;
@@ -209,14 +213,14 @@ export class SelectionBubble {
 		sendBtn.addEventListener("click", (e) => {
 			e.stopPropagation();
 			const value = input.value.trim();
-			if (value) this.handleSubmit(value);
+			if (value) void this.handleSubmit(value);
 		});
 
 		input.addEventListener("keydown", (e) => {
 			if (e.key === "Enter" && !e.shiftKey) {
 				e.preventDefault();
 				const value = input.value.trim();
-				if (value) this.handleSubmit(value);
+				if (value) void this.handleSubmit(value);
 			}
 			if (e.key === "Escape") {
 				this.hideBubble();
