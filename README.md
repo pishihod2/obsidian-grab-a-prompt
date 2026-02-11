@@ -30,4 +30,4 @@ Templates are curated at [grabaprompt.com](https://grabaprompt.com) and bundled 
 
 ## Feedback
 
-Found a bug or have a template idea? Open an issue on [GitHub](https://github.com/pishihod2/grabaprompt/issues) or visit [grabaprompt.com](https://grabaprompt.com).
+Found a bug or have a template idea? Open an issue on [GitHub](https://github.com/pishihod2/obsidian-grab-a-prompt/issues) or visit [grabaprompt.com](https://grabaprompt.com).
