@@ -6,7 +6,7 @@ export interface Category {
 }
 
 export interface Template {
-	id: number;
+	id: number | string;
 	name: string | null;
 	prompt: string | null;
 	shortDescription: string | null;
@@ -19,3 +19,18 @@ export interface TemplateGroup {
 	category: Category;
 	templates: Template[];
 }
+
+export interface UserTemplate {
+	id: string;
+	name: string;
+	prompt: string;
+	shortDescription: string;
+	hasFocusText: boolean;
+}
+
+export const USER_TEMPLATE_CATEGORY: Category = {
+	id: -1,
+	name: "My Templates",
+	subheader: null,
+	position: -1,
+};

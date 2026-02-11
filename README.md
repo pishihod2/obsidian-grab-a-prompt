@@ -1,6 +1,6 @@
 # Grab a Prompt
 
-Ready-made AI prompt templates for writers, right inside Obsidian. Pick a template for researching, summarizing, editing, proofing, or brainstorming — it auto-fills with your document or selection and copies to clipboard, ready to paste into ChatGPT, Claude, Gemini, or any LLM.
+A library of ready-made AI prompt templates for writers and everyone working with texts, right inside Obsidian (covers literary fiction, genre fiction, non-fiction, copywriting, content marketing, etc.). Pick a template for researching, summarizing, editing, proofing, or brainstorming — it auto-fills with your document or selection and copies to clipboard, ready to paste into ChatGPT, Claude, Gemini, or any LLM.
 
 ![Grab a Prompt sidebar](screenshot.png)
 
@@ -30,4 +30,4 @@ Templates are curated at [grabaprompt.com](https://grabaprompt.com) and bundled 
 
 ## Feedback
 
-Found a bug or have a template idea? Open an issue on [GitHub](https://github.com/nicekid1/obsidian-grab-a-prompt/issues) or visit [grabaprompt.com](https://grabaprompt.com).
+Found a bug or have a template idea? Open an issue on [GitHub](https://github.com/pishihod2/grabaprompt/issues) or visit [grabaprompt.com](https://grabaprompt.com).

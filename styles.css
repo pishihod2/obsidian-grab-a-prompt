@@ -11,21 +11,25 @@
 /* Search */
 .grab-a-prompt-search {
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--background-modifier-border);
 }
 
 .grab-a-prompt-search-input {
 	width: 100%;
-	padding: 6px 10px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 4px;
-	background: var(--background-primary);
+	padding: 6px 0;
+	border: none;
+	border-bottom: 1px solid var(--background-modifier-border);
+	border-radius: 0;
+	background: transparent;
 	color: var(--text-normal);
 	font-size: var(--font-ui-small);
 }
 
+.grab-a-prompt-search-input::placeholder {
+	font-size: var(--font-ui-smaller);
+}
+
 .grab-a-prompt-search-input:focus {
-	border-color: var(--interactive-accent);
+	border-bottom-color: var(--interactive-accent);
 	outline: none;
 }
 
@@ -45,7 +49,31 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	margin-bottom: 2px;
+	margin-bottom: 6px;
+}
+
+.grab-a-prompt-category-header-clickable {
+	cursor: pointer;
+	border-radius: 4px;
+	padding: 2px 4px;
+	margin-left: -4px;
+	margin-right: -4px;
+}
+
+.grab-a-prompt-category-header-clickable:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.grab-a-prompt-category-chevron {
+	font-size: 14px;
+	color: var(--text-muted);
+	transition: transform 0.15s ease;
+	transform: rotate(90deg);
+	line-height: 1;
+}
+
+.grab-a-prompt-category-chevron-collapsed {
+	transform: rotate(0deg);
 }
 
 .grab-a-prompt-category-symbol {
@@ -73,12 +101,13 @@
 .grab-a-prompt-item {
 	position: relative;
 	padding: 8px 12px;
-	margin: 2px 8px;
+	margin: 2px 0;
 	border: 1px solid var(--background-modifier-border);
 	border-left: 3px solid var(--interactive-accent);
 	border-radius: 4px;
 	cursor: pointer;
 	transition: background-color 0.15s ease;
+	min-height: 68px;
 }
 
 .grab-a-prompt-item:hover {
@@ -247,17 +276,6 @@
 	word-break: break-word;
 }
 
-/* Placeholder badges */
-.grab-a-prompt-badge {
-	display: inline;
-	background-color: var(--background-modifier-border);
-	color: var(--text-normal);
-	padding: 1px 5px;
-	border-radius: 4px;
-	font-family: var(--font-monospace);
-	font-size: var(--font-ui-smaller);
-}
-
 /* Hint */
 .grab-a-prompt-hint {
 	padding: 4px 12px;
@@ -306,4 +324,361 @@
 	color: var(--text-faint);
 	margin-top: 2px;
 	font-style: italic;
+}
+
+/* "New template" button in My Templates header */
+.grab-a-prompt-new-template-btn {
+	margin-left: auto;
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 3px;
+	background: var(--background-primary);
+	color: var(--text-muted);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.grab-a-prompt-new-template-btn:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+/* Template editor modal */
+.grab-a-prompt-editor-modal {
+	padding: 8px;
+}
+
+.grab-a-prompt-editor-modal h3 {
+	margin: 0 0 12px;
+	font-size: var(--font-ui-medium);
+	font-weight: 700;
+	color: var(--text-normal);
+}
+
+.grab-a-prompt-editor-field {
+	margin-bottom: 12px;
+}
+
+.grab-a-prompt-editor-field label {
+	display: block;
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	color: var(--text-normal);
+	margin-bottom: 4px;
+}
+
+.grab-a-prompt-editor-input {
+	width: 100%;
+	padding: 6px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+}
+
+.grab-a-prompt-editor-input:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+}
+
+.grab-a-prompt-editor-textarea {
+	width: 100%;
+	min-height: 150px;
+	padding: 8px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+	font-family: var(--font-monospace);
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.grab-a-prompt-editor-textarea:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+}
+
+.grab-a-prompt-editor-hint {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	margin-top: 4px;
+	line-height: 1.4;
+}
+
+.grab-a-prompt-editor-toggle {
+	margin-bottom: 12px;
+}
+
+.grab-a-prompt-editor-toggle label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--font-ui-small);
+	color: var(--text-normal);
+	cursor: pointer;
+}
+
+.grab-a-prompt-editor-error {
+	color: var(--text-error);
+	font-size: var(--font-ui-smaller);
+	margin-bottom: 8px;
+}
+
+.grab-a-prompt-editor-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.grab-a-prompt-editor-save-btn {
+	padding: 6px 16px;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+}
+
+.grab-a-prompt-editor-save-btn:hover {
+	opacity: 0.9;
+}
+
+.grab-a-prompt-editor-cancel-btn {
+	padding: 6px 16px;
+	background: none;
+	border: none;
+	border-radius: 4px;
+	color: var(--text-faint);
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+}
+
+.grab-a-prompt-editor-cancel-btn:hover {
+	color: var(--text-normal);
+	background: var(--background-modifier-hover);
+}
+
+/* Settings tab */
+.grab-a-prompt-settings > p,
+.grab-a-prompt-settings > h3 {
+	padding: 0 18px;
+}
+
+/* Detail view action buttons for user templates */
+.grab-a-prompt-detail-actions-row {
+	display: flex;
+	gap: 6px;
+	padding: 0 12px 4px;
+}
+
+.grab-a-prompt-detail-action-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	background: none;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	font-size: var(--font-ui-smaller);
+	cursor: pointer;
+	color: var(--text-muted);
+	padding: 4px 8px;
+	transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.grab-a-prompt-detail-action-btn:hover {
+	color: var(--text-normal);
+	background: var(--background-modifier-hover);
+}
+
+.grab-a-prompt-detail-delete-btn:hover {
+	color: var(--text-error);
+}
+
+/* ============================================
+   Quick Prompt (Sidebar)
+   ============================================ */
+
+.grab-a-prompt-quick-prompt {
+	padding: 8px 12px 4px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+}
+
+.grab-a-prompt-quick-prompt-label {
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--text-normal);
+	margin-bottom: 6px;
+}
+
+.grab-a-prompt-quick-prompt-input {
+	width: 100%;
+	padding: 6px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-left: 3px solid var(--interactive-accent);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+	font-family: inherit;
+	line-height: 1.4;
+	resize: none;
+	min-height: 54px;
+	max-height: 120px;
+	overflow-y: auto;
+}
+
+.grab-a-prompt-quick-prompt-input:focus {
+	border-color: var(--interactive-accent);
+	border-left: 3px solid var(--interactive-accent);
+	outline: none;
+}
+
+.grab-a-prompt-quick-prompt-input::placeholder {
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+}
+
+/* ============================================
+   Selection Bubble (Editor Overlay)
+   ============================================ */
+
+.grab-a-prompt-bubble {
+	position: fixed;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	padding: 4px;
+	animation: grab-a-prompt-bubble-in 0.15s ease-out;
+}
+
+@keyframes grab-a-prompt-bubble-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px) scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.grab-a-prompt-bubble-trigger {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 4px;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.grab-a-prompt-bubble-trigger:hover {
+	background: var(--background-modifier-hover);
+}
+
+.grab-a-prompt-bubble-icon {
+	color: var(--text-accent);
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+}
+
+.grab-a-prompt-bubble-icon svg {
+	width: 14px;
+	height: 14px;
+}
+
+.grab-a-prompt-bubble-label {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-normal);
+	white-space: nowrap;
+}
+
+/* Expanded state */
+.grab-a-prompt-bubble-expanded {
+	width: 320px;
+	flex-direction: column;
+	padding: 8px;
+	gap: 6px;
+}
+
+.grab-a-prompt-bubble-input {
+	width: 100%;
+	padding: 6px 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+	font-family: inherit;
+	line-height: 1.4;
+	resize: none;
+	min-height: 48px;
+	max-height: 120px;
+}
+
+.grab-a-prompt-bubble-input:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+}
+
+.grab-a-prompt-bubble-input::placeholder {
+	color: var(--text-faint);
+}
+
+.grab-a-prompt-bubble-send {
+	width: 100%;
+	padding: 6px 12px;
+	border: none;
+	border-radius: 4px;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	cursor: pointer;
+	transition: opacity 0.15s ease;
+}
+
+.grab-a-prompt-bubble-send:hover {
+	opacity: 0.9;
+}
+
+/* ============================================
+   Confirm Modal (Delete Confirmation)
+   ============================================ */
+
+.grab-a-prompt-confirm-modal p {
+	font-size: var(--font-ui-small);
+	color: var(--text-normal);
+	margin-bottom: 8px;
+}
+
+.grab-a-prompt-confirm-delete-btn {
+	background: var(--text-error);
+}
+
+.grab-a-prompt-confirm-delete-btn:hover {
+	opacity: 0.9;
 }

@@ -1,27 +1,23 @@
 import { App, Editor, SuggestModal, Notice } from "obsidian";
 import type { Template } from "../types";
-import { templates } from "../data/templates";
-import { assemblePrompt } from "../prompt/assemble";
+import { assemblePrompt, canCopy } from "../prompt/assemble";
+import { matchesFilter } from "../utils";
 
 export class TemplateSuggestModal extends SuggestModal<Template> {
 	editor: Editor;
+	private allTemplates: Template[];
 
-	constructor(app: App, editor: Editor) {
+	constructor(app: App, editor: Editor, allTemplates: Template[]) {
 		super(app);
 		this.editor = editor;
+		this.allTemplates = allTemplates;
 		this.setPlaceholder("Search for a prompt template...");
 	}
 
 	getSuggestions(query: string): Template[] {
 		const lower = query.toLowerCase();
-		if (!lower) return templates;
-
-		return templates.filter((t) => {
-			const name = (t.name ?? "").toLowerCase();
-			const desc = (t.shortDescription ?? "").toLowerCase();
-			const catName = (t.category?.name ?? "").toLowerCase();
-			return name.includes(lower) || desc.includes(lower) || catName.includes(lower);
-		});
+		if (!lower) return this.allTemplates;
+		return this.allTemplates.filter((t) => matchesFilter(t, lower));
 	}
 
 	renderSuggestion(template: Template, el: HTMLElement) {
@@ -39,7 +35,7 @@ export class TemplateSuggestModal extends SuggestModal<Template> {
 	}
 
 	async onChooseSuggestion(template: Template) {
-		if (template.hasFocusText && !this.editor.getSelection().trim()) {
+		if (!canCopy(template, this.editor.getSelection())) {
 			new Notice("Select text in your editor first — this template requires a selection");
 			return;
 		}

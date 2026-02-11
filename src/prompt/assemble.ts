@@ -6,13 +6,13 @@ export function assemblePrompt(template: Template, editor: Editor): string {
 	const selection = editor.getSelection() || "";
 	const document = editor.getValue() || "";
 
-	// Step 1: start with template prompt + full document as context
-	let fullPrompt = `${promptText}\n\nText:\n${document}`;
+	let fullPrompt = "MY TEXT:\n===\n" + document + "\n===\n\n";
 
-	// Step 2: if hasFocusText and there's a selection, append it
 	if (template.hasFocusText && selection) {
-		fullPrompt += `\n\nPart of the text to focus on:\n${selection}`;
+		fullPrompt += "FOCUS ON THIS PART:\n===\n" + selection + "\n===\n\n";
 	}
+
+	fullPrompt += promptText;
 
 	return fullPrompt;
 }
@@ -22,4 +22,27 @@ export function canCopy(template: Template, selection: string): boolean {
 		return selection.trim() !== "";
 	}
 	return true;
+}
+
+export function assembleQuickPrompt(
+	documentText: string,
+	userInput: string,
+): string {
+	return "MY TEXT:\n===\n" + documentText + "\n===\n\n" + userInput;
+}
+
+export function assembleSelectionBubblePrompt(
+	documentText: string,
+	selectedText: string,
+	userInput: string,
+): string {
+	return (
+		"MY TEXT:\n===\n" +
+		documentText +
+		"\n===\n\n" +
+		"FOCUS ON THIS PART:\n===\n" +
+		selectedText +
+		"\n===\n\n" +
+		userInput
+	);
 }

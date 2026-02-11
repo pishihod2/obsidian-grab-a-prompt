@@ -1,388 +1,633 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, Notice, type EventRef } from "obsidian";
+import {
+  ItemView,
+  WorkspaceLeaf,
+  Notice,
+  type EventRef,
+} from "obsidian";
 import type GrabAPromptPlugin from "../main";
 import type { Template, TemplateGroup } from "../types";
+import { USER_TEMPLATE_CATEGORY } from "../types";
 import { templates } from "../data/templates";
-import { groupTemplatesByCategory } from "../data/group";
-import { assemblePrompt } from "../prompt/assemble";
+import { groupTemplatesByCategory, getAllTemplates } from "../data/group";
+import { assemblePrompt, assembleQuickPrompt, canCopy } from "../prompt/assemble";
+import { matchesFilter, getActiveMarkdownView } from "../utils";
+import { TemplateEditorModal } from "../modals/TemplateEditorModal";
+import { ConfirmModal } from "../modals/ConfirmModal";
 
 export const VIEW_TYPE = "grab-a-prompt-sidebar";
 
 export class SidebarView extends ItemView {
-	plugin: GrabAPromptPlugin;
-	private groups: TemplateGroup[];
-	private selectedTemplate: Template | null = null;
-	private selectionEventRefs: EventRef[] = [];
-	private selectionChangeDomHandler: (() => void) | null = null;
+  plugin: GrabAPromptPlugin;
+  private allTemplates: Template[];
+  private groups: TemplateGroup[];
+  private selectedTemplate: Template | null = null;
+  private currentFilter = "";
+  private selectionEventRefs: EventRef[] = [];
+  private selectionChangeDomHandler: (() => void) | null = null;
 
-	constructor(leaf: WorkspaceLeaf, plugin: GrabAPromptPlugin) {
-		super(leaf);
-		this.plugin = plugin;
-		this.groups = groupTemplatesByCategory(templates);
-	}
+  constructor(leaf: WorkspaceLeaf, plugin: GrabAPromptPlugin) {
+    super(leaf);
+    this.plugin = plugin;
+    this.allTemplates = getAllTemplates(
+      templates,
+      this.plugin.settings.userTemplates,
+      this.plugin.settings.showBuiltInTemplates,
+    );
+    this.groups = groupTemplatesByCategory(this.allTemplates);
+  }
 
-	getViewType(): string {
-		return VIEW_TYPE;
-	}
+  refreshTemplates() {
+    this.allTemplates = getAllTemplates(
+      templates,
+      this.plugin.settings.userTemplates,
+      this.plugin.settings.showBuiltInTemplates,
+    );
+    this.groups = groupTemplatesByCategory(this.allTemplates);
+    if (this.selectedTemplate) {
+      // If we're on a detail view, check if the template still exists
+      const stillExists = this.allTemplates.find(
+        (t) => t.id === this.selectedTemplate!.id,
+      );
+      if (stillExists) {
+        this.renderDetail(stillExists);
+      } else {
+        this.renderList();
+      }
+    } else {
+      this.renderList();
+    }
+  }
 
-	getDisplayText(): string {
-		return "Grab a Prompt";
-	}
+  getViewType(): string {
+    return VIEW_TYPE;
+  }
 
-	getIcon(): string {
-		return "layout-grid";
-	}
+  getDisplayText(): string {
+    return "Grab a Prompt";
+  }
 
-	async onOpen() {
-		this.renderList();
-	}
+  getIcon(): string {
+    return "layout-grid";
+  }
 
-	async onClose() {
-		this.unregisterSelectionListener();
-	}
+  async onOpen() {
+    this.initCollapsedCategories();
+    this.renderList();
+  }
 
-	private getMarkdownEditor() {
-		// getActiveViewOfType won't work when the sidebar is focused,
-		// so find the most recent markdown leaf manually
-		const leaves = this.app.workspace.getLeavesOfType("markdown");
-		if (leaves.length === 0) return null;
+  private initCollapsedCategories() {
+    // On first load (no saved state), collapse everything except
+    // "my-templates" and the first built-in category.
+    const collapsed = this.plugin.settings.collapsedCategories;
+    if (collapsed.length > 0) return;
 
-		// Prefer the most recently active leaf
-		const sorted = leaves.sort(
-			(a, b) => ((b as any).activeTime ?? 0) - ((a as any).activeTime ?? 0)
-		);
-		const view = sorted[0].view;
-		if (view instanceof MarkdownView) return view.editor;
-		return null;
-	}
+    const builtInGroups = this.groups.filter(
+      (g) => g.category.id !== USER_TEMPLATE_CATEGORY.id,
+    );
 
-	private isFavorite(template: Template): boolean {
-		return this.plugin.settings.favorites.includes(template.id);
-	}
+    // Collapse favorites and all built-in groups after the first one
+    const toCollapse: string[] = ["favorites"];
+    for (let i = 1; i < builtInGroups.length; i++) {
+      toCollapse.push(`cat-${builtInGroups[i].category.id}`);
+    }
 
-	private async toggleFavorite(template: Template) {
-		const favs = this.plugin.settings.favorites;
-		const idx = favs.indexOf(template.id);
-		if (idx >= 0) {
-			favs.splice(idx, 1);
-		} else {
-			favs.push(template.id);
-		}
-		await this.plugin.saveSettings();
-	}
+    if (toCollapse.length > 0) {
+      collapsed.push(...toCollapse);
+      this.plugin.saveSettings();
+    }
+  }
 
-	private renderList(filter = "") {
-		this.unregisterSelectionListener();
-		this.selectedTemplate = null;
+  async onClose() {
+    this.unregisterSelectionListener();
+  }
 
-		const container = this.containerEl.children[1] as HTMLElement;
-		container.empty();
-		container.addClass("grab-a-prompt-container");
+  private getEditor() {
+    return getActiveMarkdownView(this.app)?.editor ?? null;
+  }
 
-		// Search input
-		const searchContainer = container.createDiv({ cls: "grab-a-prompt-search" });
-		const searchInput = searchContainer.createEl("input", {
-			type: "text",
-			placeholder: "Search templates...",
-			cls: "grab-a-prompt-search-input",
-		});
-		searchInput.value = filter;
-		searchInput.addEventListener("input", () => {
-			this.renderList(searchInput.value);
-		});
+  private isFavorite(template: Template): boolean {
+    return this.plugin.settings.favorites.includes(template.id);
+  }
 
-		const lowerFilter = filter.toLowerCase();
+  private async toggleFavorite(template: Template) {
+    const favs = this.plugin.settings.favorites;
+    const idx = favs.indexOf(template.id);
+    if (idx >= 0) {
+      favs.splice(idx, 1);
+    } else {
+      favs.push(template.id);
+    }
+    await this.plugin.saveSettings();
+  }
 
-		// Template groups
-		const listContainer = container.createDiv({ cls: "grab-a-prompt-list" });
+  private renderList(filter = "") {
+    this.unregisterSelectionListener();
+    this.selectedTemplate = null;
+    this.currentFilter = filter;
 
-		// Track hasFocusText items so we can update their disabled state
-		const focusTextItems: { el: HTMLElement; template: Template }[] = [];
+    const container = this.containerEl.children[1] as HTMLElement;
+    container.empty();
+    container.addClass("grab-a-prompt-container");
 
-		// Favorites group (shown at top)
-		const favoriteTemplates = templates.filter((t) => {
-			if (!this.isFavorite(t)) return false;
-			if (!lowerFilter) return true;
-			const name = (t.name ?? "").toLowerCase();
-			const desc = (t.shortDescription ?? "").toLowerCase();
-			const catName = (t.category?.name ?? "").toLowerCase();
-			return name.includes(lowerFilter) || desc.includes(lowerFilter) || catName.includes(lowerFilter);
-		});
+    // Quick Prompt input
+    if (this.plugin.settings.enableQuickPrompt) {
+      this.renderQuickPrompt(container);
+    }
 
-		if (favoriteTemplates.length > 0) {
-			const favCategoryEl = listContainer.createDiv({ cls: "grab-a-prompt-category" });
-			const favHeader = favCategoryEl.createDiv({ cls: "grab-a-prompt-category-header" });
-			favHeader.createSpan({ cls: "grab-a-prompt-category-symbol grab-a-prompt-fav-symbol", text: "\u2605" });
-			favHeader.createSpan({ cls: "grab-a-prompt-category-name", text: "Favorites" });
+    // Search input
+    const searchContainer = container.createDiv({
+      cls: "grab-a-prompt-search",
+    });
+    const searchInput = searchContainer.createEl("input", {
+      type: "text",
+      placeholder: "Search templates...",
+      cls: "grab-a-prompt-search-input",
+    });
+    searchInput.value = filter;
+    searchInput.addEventListener("input", () => {
+      this.renderList(searchInput.value);
+    });
 
-			for (const template of favoriteTemplates) {
-				this.renderTemplateItem(favCategoryEl, template, focusTextItems);
-			}
-		}
+    const lowerFilter = filter.toLowerCase();
+    const listContainer = container.createDiv({ cls: "grab-a-prompt-list" });
+    const focusTextItems: HTMLElement[] = [];
 
-		// Regular category groups
-		for (const group of this.groups) {
-			const matchingTemplates = group.templates.filter((t) => {
-				if (!lowerFilter) return true;
-				const name = (t.name ?? "").toLowerCase();
-				const desc = (t.shortDescription ?? "").toLowerCase();
-				const catName = (group.category.name ?? "").toLowerCase();
-				return name.includes(lowerFilter) || desc.includes(lowerFilter) || catName.includes(lowerFilter);
-			});
+    this.renderFavoritesSection(listContainer, lowerFilter, focusTextItems);
+    this.renderMyTemplatesSection(listContainer, lowerFilter, focusTextItems);
+    this.renderCategoryGroups(listContainer, lowerFilter, focusTextItems);
 
-			if (matchingTemplates.length === 0) continue;
+    // Update disabled state for hasFocusText items
+    if (focusTextItems.length > 0) {
+      const updateDisabledStates = () => {
+        const editor = this.getEditor();
+        const hasSelection = !!editor?.getSelection()?.trim();
+        for (const el of focusTextItems) {
+          el.toggleClass("grab-a-prompt-item-disabled", !hasSelection);
+        }
+      };
+      updateDisabledStates();
+      this.registerSelectionListener(updateDisabledStates);
+    }
 
-			// Category header
-			const categoryEl = listContainer.createDiv({ cls: "grab-a-prompt-category" });
-			const categoryHeader = categoryEl.createDiv({ cls: "grab-a-prompt-category-header" });
-			categoryHeader.createSpan({ cls: "grab-a-prompt-category-symbol", text: "\u25A0" });
-			categoryHeader.createSpan({ cls: "grab-a-prompt-category-name", text: group.category.name ?? "" });
+    // Focus search input if there's already a filter
+    if (filter) {
+      searchInput.focus();
+      searchInput.setSelectionRange(filter.length, filter.length);
+    }
+  }
 
-			if (group.category.subheader) {
-				categoryEl.createDiv({
-					cls: "grab-a-prompt-category-subheader",
-					text: group.category.subheader,
-				});
-			}
+  private renderFavoritesSection(
+    listContainer: HTMLElement,
+    lowerFilter: string,
+    focusTextItems: HTMLElement[],
+  ) {
+    const favoriteTemplates = this.allTemplates.filter(
+      (t) => this.isFavorite(t) && matchesFilter(t, lowerFilter),
+    );
 
-			// Template items
-			for (const template of matchingTemplates) {
-				this.renderTemplateItem(categoryEl, template, focusTextItems);
-			}
-		}
+    if (favoriteTemplates.length === 0) return;
 
-		// Update disabled state for hasFocusText items
-		const updateDisabledStates = () => {
-			const editor = this.getMarkdownEditor();
-			const hasSelection = !!(editor?.getSelection()?.trim());
+    const categoryKey = "favorites";
+    const favCategoryEl = listContainer.createDiv({
+      cls: "grab-a-prompt-category",
+    });
+    const collapsed = this.isCategoryCollapsed(categoryKey);
+    const favHeader = favCategoryEl.createDiv({
+      cls: "grab-a-prompt-category-header grab-a-prompt-category-header-clickable",
+    });
+    favHeader.createSpan({
+      cls: `grab-a-prompt-category-chevron${collapsed ? " grab-a-prompt-category-chevron-collapsed" : ""}`,
+      text: "\u203A",
+    });
+    favHeader.createSpan({
+      cls: "grab-a-prompt-category-symbol grab-a-prompt-fav-symbol",
+      text: "\u2605",
+    });
+    favHeader.createSpan({
+      cls: "grab-a-prompt-category-name",
+      text: "Favorites",
+    });
+    favHeader.addEventListener("click", async () => {
+      await this.toggleCategoryCollapsed(categoryKey);
+      this.renderList(this.currentFilter);
+    });
 
-			for (const { el } of focusTextItems) {
-				if (hasSelection) {
-					el.removeClass("grab-a-prompt-item-disabled");
-				} else {
-					el.addClass("grab-a-prompt-item-disabled");
-				}
-			}
-		};
+    if (!collapsed) {
+      for (const template of favoriteTemplates) {
+        this.renderTemplateItem(favCategoryEl, template, focusTextItems);
+      }
+    }
+  }
 
-		if (focusTextItems.length > 0) {
-			updateDisabledStates();
-			this.registerSelectionListener(updateDisabledStates);
-		}
+  private isCategoryCollapsed(key: string): boolean {
+    if (this.currentFilter) return false;
+    return this.plugin.settings.collapsedCategories.includes(key);
+  }
 
-		// Focus search input if there's already a filter
-		if (filter) {
-			searchInput.focus();
-			searchInput.setSelectionRange(filter.length, filter.length);
-		}
-	}
+  private async toggleCategoryCollapsed(key: string) {
+    const arr = this.plugin.settings.collapsedCategories;
+    const idx = arr.indexOf(key);
+    if (idx >= 0) {
+      arr.splice(idx, 1);
+    } else {
+      arr.push(key);
+    }
+    await this.plugin.saveSettings();
+  }
 
-	private renderTemplateItem(
-		parentEl: HTMLElement,
-		template: Template,
-		focusTextItems: { el: HTMLElement; template: Template }[],
-	) {
-		const itemEl = parentEl.createDiv({ cls: "grab-a-prompt-item" });
+  private renderSectionHeader(
+    parent: HTMLElement,
+    name: string,
+    categoryKey: string,
+  ): HTMLElement {
+    const collapsed = this.isCategoryCollapsed(categoryKey);
+    const header = parent.createDiv({ cls: "grab-a-prompt-category-header grab-a-prompt-category-header-clickable" });
+    header.createSpan({
+      cls: `grab-a-prompt-category-chevron${collapsed ? " grab-a-prompt-category-chevron-collapsed" : ""}`,
+      text: "\u203A",
+    });
+    header.createSpan({ cls: "grab-a-prompt-category-name", text: name });
 
-		itemEl.createDiv({ cls: "grab-a-prompt-item-name", text: template.name ?? "" });
-		itemEl.createDiv({
-			cls: "grab-a-prompt-item-desc",
-			text: template.shortDescription ?? "",
-		});
+    header.addEventListener("click", async () => {
+      await this.toggleCategoryCollapsed(categoryKey);
+      this.renderList(this.currentFilter);
+    });
 
-		// Favorite star button — visible on hover (or always if favorited)
-		const starBtn = itemEl.createEl("button", {
-			cls: "grab-a-prompt-item-star-btn",
-			attr: { "aria-label": "Toggle favorite" },
-		});
-		starBtn.setText(this.isFavorite(template) ? "\u2605" : "\u2606");
-		if (this.isFavorite(template)) {
-			starBtn.addClass("grab-a-prompt-item-star-active");
-		}
-		starBtn.addEventListener("click", async (e) => {
-			e.stopPropagation();
-			await this.toggleFavorite(template);
-			// Re-render to move item in/out of favorites group
-			this.renderList();
-		});
+    return header;
+  }
 
-		// "View details" button — visible on hover
-		const detailBtn = itemEl.createEl("button", {
-			cls: "grab-a-prompt-item-detail-btn",
-			attr: { "aria-label": "View template details" },
-		});
-		detailBtn.setText("\u2192");
-		detailBtn.addEventListener("click", (e) => {
-			e.stopPropagation();
-			this.renderDetail(template);
-		});
+  private renderMyTemplatesSection(
+    listContainer: HTMLElement,
+    lowerFilter: string,
+    focusTextItems: HTMLElement[],
+  ) {
+    if (!this.plugin.settings.enableMyTemplates) return;
 
-		if (template.hasFocusText) {
-			focusTextItems.push({ el: itemEl, template });
-		}
+    const myTemplatesGroup = this.groups.find(
+      (g) => g.category.id === USER_TEMPLATE_CATEGORY.id,
+    );
+    const myMatchingTemplates = (myTemplatesGroup?.templates ?? []).filter(
+      (t) => matchesFilter(t, lowerFilter),
+    );
 
-		// Click = copy prompt
-		itemEl.addEventListener("click", () => {
-			this.handleItemCopy(template, itemEl);
-		});
-	}
+    // Show the section if there are templates or no filter is active
+    if (myMatchingTemplates.length === 0 && lowerFilter) return;
 
-	private async handleItemCopy(template: Template, itemEl: HTMLElement) {
-		const editor = this.getMarkdownEditor();
-		if (!editor) {
-			new Notice("No active editor \u2014 open a note first");
-			return;
-		}
+    const categoryKey = "my-templates";
+    const categoryEl = listContainer.createDiv({
+      cls: "grab-a-prompt-category",
+    });
+    const header = this.renderSectionHeader(categoryEl, "My Templates", categoryKey);
 
-		if (template.hasFocusText && !editor.getSelection()?.trim()) {
-			new Notice("Select text in your editor first \u2014 this template needs a selection");
-			return;
-		}
+    const newBtn = header.createEl("button", {
+      cls: "grab-a-prompt-new-template-btn",
+      attr: { "aria-label": "Create new template" },
+      text: "+",
+    });
+    newBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      new TemplateEditorModal(this.app, this.plugin).open();
+    });
 
-		const assembled = assemblePrompt(template, editor);
-		await navigator.clipboard.writeText(assembled);
+    if (!this.isCategoryCollapsed(categoryKey)) {
+      for (const template of myMatchingTemplates) {
+        this.renderTemplateItem(categoryEl, template, focusTextItems);
+      }
+    }
+  }
 
-		new Notice(`Copied to clipboard: ${template.name}`);
-	}
+  private renderCategoryGroups(
+    listContainer: HTMLElement,
+    lowerFilter: string,
+    focusTextItems: HTMLElement[],
+  ) {
+    for (const group of this.groups) {
+      if (group.category.id === USER_TEMPLATE_CATEGORY.id) continue;
 
-	private renderDetail(template: Template) {
-		this.selectedTemplate = template;
+      const matchingTemplates = group.templates.filter(
+        (t) => matchesFilter(t, lowerFilter),
+      );
+      if (matchingTemplates.length === 0) continue;
 
-		const container = this.containerEl.children[1] as HTMLElement;
-		container.empty();
-		container.addClass("grab-a-prompt-container");
+      const categoryKey = `cat-${group.category.id}`;
+      const categoryEl = listContainer.createDiv({
+        cls: "grab-a-prompt-category",
+      });
+      this.renderSectionHeader(categoryEl, group.category.name ?? "", categoryKey);
 
-		// Back button
-		const backBtn = container.createEl("button", {
-			cls: "grab-a-prompt-back-btn",
-			text: "\u2190 Back",
-		});
-		backBtn.addEventListener("click", () => {
-			this.renderList();
-		});
+      if (!this.isCategoryCollapsed(categoryKey)) {
+        if (group.category.subheader) {
+          categoryEl.createDiv({
+            cls: "grab-a-prompt-category-subheader",
+            text: group.category.subheader,
+          });
+        }
 
-		// Template name + favorite toggle
-		const nameRow = container.createDiv({ cls: "grab-a-prompt-detail-name-row" });
-		nameRow.createSpan({ cls: "grab-a-prompt-detail-name", text: template.name ?? "" });
-		const detailStarBtn = nameRow.createEl("button", {
-			cls: "grab-a-prompt-detail-star-btn",
-			attr: { "aria-label": "Toggle favorite" },
-		});
-		detailStarBtn.setText(this.isFavorite(template) ? "\u2605" : "\u2606");
-		if (this.isFavorite(template)) {
-			detailStarBtn.addClass("grab-a-prompt-detail-star-active");
-		}
-		detailStarBtn.addEventListener("click", async () => {
-			await this.toggleFavorite(template);
-			const isFav = this.isFavorite(template);
-			detailStarBtn.setText(isFav ? "\u2605" : "\u2606");
-			detailStarBtn.toggleClass("grab-a-prompt-detail-star-active", isFav);
-		});
+        for (const template of matchingTemplates) {
+          this.renderTemplateItem(categoryEl, template, focusTextItems);
+        }
+      }
+    }
+  }
 
-		// Short description
-		if (template.shortDescription) {
-			container.createDiv({ cls: "grab-a-prompt-detail-desc", text: template.shortDescription });
-		}
+  private renderQuickPrompt(container: HTMLElement) {
+    const section = container.createDiv({ cls: "grab-a-prompt-quick-prompt" });
 
-		// Prompt preview with placeholder badges
-		const promptPreview = container.createDiv({ cls: "grab-a-prompt-prompt-preview" });
-		this.renderPromptWithBadges(promptPreview, template.prompt ?? "");
+    section.createDiv({
+      cls: "grab-a-prompt-quick-prompt-label",
+      text: "Quick Prompt",
+    });
 
-		// Hint for hasFocusText templates
-		const hintEl = container.createDiv({ cls: "grab-a-prompt-hint" });
+    const input = section.createEl("textarea", {
+      cls: "grab-a-prompt-quick-prompt-input",
+      attr: {
+        placeholder:
+          "Type a prompt and hit Enter to copy to clipboard (your full note will be added automatically)",
+        rows: "3",
+      },
+    });
 
-		// Copy button
-		const copyBtn = container.createEl("button", {
-			cls: "grab-a-prompt-copy-btn",
-			text: "Copy prompt + text to clipboard",
-		});
+    const handleSend = async () => {
+      const userInput = input.value.trim();
+      if (!userInput) {
+        new Notice("Type a prompt first");
+        return;
+      }
 
-		const updateCopyState = () => {
-			const editor = this.getMarkdownEditor();
-			const selection = editor?.getSelection() || "";
+      const editor = this.getEditor();
+      if (!editor) {
+        new Notice("No active editor \u2014 open a note first");
+        return;
+      }
 
-			if (template.hasFocusText && !selection.trim()) {
-				hintEl.setText("Select text in editor to use this template");
-				hintEl.show();
-				copyBtn.disabled = true;
-				copyBtn.addClass("grab-a-prompt-btn-disabled");
-			} else {
-				hintEl.setText("");
-				hintEl.hide();
-				copyBtn.disabled = false;
-				copyBtn.removeClass("grab-a-prompt-btn-disabled");
-			}
-		};
+      const doc = editor.getValue();
+      const assembled = assembleQuickPrompt(doc, userInput);
+      await navigator.clipboard.writeText(assembled);
 
-		updateCopyState();
+      new Notice("Prompt copied to clipboard");
+    };
 
-		// Listen for selection changes if hasFocusText
-		if (template.hasFocusText) {
-			this.registerSelectionListener(updateCopyState);
-		}
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    });
+  }
 
-		copyBtn.addEventListener("click", async () => {
-			const editor = this.getMarkdownEditor();
-			if (!editor) {
-				new Notice("No active editor — open a note first");
-				return;
-			}
+  private renderTemplateItem(
+    parentEl: HTMLElement,
+    template: Template,
+    focusTextItems: HTMLElement[],
+  ) {
+    const itemEl = parentEl.createDiv({ cls: "grab-a-prompt-item" });
 
-			const assembled = assemblePrompt(template, editor);
-			await navigator.clipboard.writeText(assembled);
+    itemEl.createDiv({
+      cls: "grab-a-prompt-item-name",
+      text: template.name ?? "",
+    });
+    itemEl.createDiv({
+      cls: "grab-a-prompt-item-desc",
+      text: template.shortDescription ?? "",
+    });
 
-			copyBtn.setText("Copied!");
-			setTimeout(() => {
-				copyBtn.setText("Copy prompt + text to clipboard");
-			}, 3000);
+    // Favorite star — visible on hover (or always if favorited)
+    this.createStarButton(
+      itemEl, template,
+      "grab-a-prompt-item-star-btn", "grab-a-prompt-item-star-active",
+      { afterToggle: () => this.renderList() },
+    );
 
-			new Notice("Prompt copied to clipboard");
-		});
-	}
+    // "View details" button — visible on hover
+    const detailBtn = itemEl.createEl("button", {
+      cls: "grab-a-prompt-item-detail-btn",
+      attr: { "aria-label": "View template details" },
+    });
+    detailBtn.setText("\u2192");
+    detailBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.renderDetail(template);
+    });
 
-	private renderPromptWithBadges(container: HTMLElement, text: string) {
-		const parts = text.split(/({{selected}}|{{paragraph}}|{{document}})/g);
+    if (template.hasFocusText) {
+      focusTextItems.push(itemEl);
+    }
 
-		for (const part of parts) {
-			if (part === "{{selected}}") {
-				container.createSpan({ cls: "grab-a-prompt-badge", text: "selection" });
-			} else if (part === "{{paragraph}}") {
-				container.createSpan({ cls: "grab-a-prompt-badge", text: "paragraph" });
-			} else if (part === "{{document}}") {
-				container.createSpan({ cls: "grab-a-prompt-badge", text: "document" });
-			} else {
-				container.createSpan({ text: part });
-			}
-		}
-	}
+    // Click = copy prompt
+    itemEl.addEventListener("click", () => {
+      this.handleItemCopy(template);
+    });
+  }
 
-	private registerSelectionListener(callback: () => void) {
-		this.unregisterSelectionListener();
+  private async handleItemCopy(template: Template) {
+    const editor = this.getEditor();
+    if (!editor) {
+      new Notice("No active editor \u2014 open a note first");
+      return;
+    }
 
-		const ref1 = this.app.workspace.on("active-leaf-change", callback);
-		const ref2 = this.app.workspace.on("editor-change", callback);
-		this.registerEvent(ref1);
-		this.registerEvent(ref2);
-		this.selectionEventRefs = [ref1, ref2];
+    if (!canCopy(template, editor.getSelection() ?? "")) {
+      new Notice(
+        "Select text in your editor first \u2014 this template needs a selection",
+      );
+      return;
+    }
 
-		// editor-change doesn't fire on selection change, so listen for that via DOM
-		let timeout: number;
-		const debounced = () => {
-			clearTimeout(timeout);
-			timeout = window.setTimeout(callback, 100);
-		};
-		activeWindow.document.addEventListener("selectionchange", debounced);
-		this.selectionChangeDomHandler = debounced;
-	}
+    const assembled = assemblePrompt(template, editor);
+    await navigator.clipboard.writeText(assembled);
 
-	private unregisterSelectionListener() {
-		for (const ref of this.selectionEventRefs) {
-			this.app.workspace.offref(ref);
-		}
-		this.selectionEventRefs = [];
+    new Notice(`Copied to clipboard: ${template.name}`);
+  }
 
-		if (this.selectionChangeDomHandler) {
-			activeWindow.document.removeEventListener("selectionchange", this.selectionChangeDomHandler);
-			this.selectionChangeDomHandler = null;
-		}
-	}
+  private renderDetail(template: Template) {
+    this.selectedTemplate = template;
+
+    const container = this.containerEl.children[1] as HTMLElement;
+    container.empty();
+    container.addClass("grab-a-prompt-container");
+
+    // Back button
+    const backBtn = container.createEl("button", {
+      cls: "grab-a-prompt-back-btn",
+      text: "\u2190 Back",
+    });
+    backBtn.addEventListener("click", () => {
+      this.renderList();
+    });
+
+    // Template name + favorite toggle
+    const nameRow = container.createDiv({
+      cls: "grab-a-prompt-detail-name-row",
+    });
+    nameRow.createSpan({
+      cls: "grab-a-prompt-detail-name",
+      text: template.name ?? "",
+    });
+    this.createStarButton(
+      nameRow, template,
+      "grab-a-prompt-detail-star-btn", "grab-a-prompt-detail-star-active",
+    );
+
+    // Edit/delete buttons for user templates
+    if (typeof template.id === "string") {
+      const actionsRow = container.createDiv({
+        cls: "grab-a-prompt-detail-actions-row",
+      });
+
+      const detailEditBtn = actionsRow.createEl("button", {
+        cls: "grab-a-prompt-detail-action-btn",
+        attr: { "aria-label": "Edit template" },
+        text: "\u270E Edit",
+      });
+      detailEditBtn.addEventListener("click", () => {
+        const ut = this.plugin.settings.userTemplates.find(
+          (t) => t.id === template.id,
+        );
+        if (ut) new TemplateEditorModal(this.app, this.plugin, ut).open();
+      });
+
+      const detailDeleteBtn = actionsRow.createEl("button", {
+        cls: "grab-a-prompt-detail-action-btn grab-a-prompt-detail-delete-btn",
+        attr: { "aria-label": "Delete template" },
+        text: "\u2715 Delete",
+      });
+      detailDeleteBtn.addEventListener("click", () => {
+        new ConfirmModal(
+          this.app,
+          "Delete this template?",
+          () => this.plugin.deleteUserTemplate(template.id as string),
+        ).open();
+      });
+    }
+
+    // Short description
+    if (template.shortDescription) {
+      container.createDiv({
+        cls: "grab-a-prompt-detail-desc",
+        text: template.shortDescription,
+      });
+    }
+
+    // Prompt preview
+    container.createDiv({
+      cls: "grab-a-prompt-prompt-preview",
+      text: template.prompt ?? "",
+    });
+
+    // Hint for hasFocusText templates
+    const hintEl = container.createDiv({ cls: "grab-a-prompt-hint" });
+
+    // Copy button
+    const copyBtn = container.createEl("button", {
+      cls: "grab-a-prompt-copy-btn",
+      text: "Copy prompt + text to clipboard",
+    });
+
+    const updateCopyState = () => {
+      const editor = this.getEditor();
+      const selection = editor?.getSelection() || "";
+
+      if (template.hasFocusText && !selection.trim()) {
+        hintEl.setText("Select text in editor to use this template");
+        hintEl.show();
+        copyBtn.disabled = true;
+        copyBtn.addClass("grab-a-prompt-btn-disabled");
+      } else {
+        hintEl.setText("");
+        hintEl.hide();
+        copyBtn.disabled = false;
+        copyBtn.removeClass("grab-a-prompt-btn-disabled");
+      }
+    };
+
+    updateCopyState();
+
+    // Listen for selection changes if hasFocusText
+    if (template.hasFocusText) {
+      this.registerSelectionListener(updateCopyState);
+    }
+
+    copyBtn.addEventListener("click", async () => {
+      const editor = this.getEditor();
+      if (!editor) {
+        new Notice("No active editor \u2014 open a note first");
+        return;
+      }
+
+      const assembled = assemblePrompt(template, editor);
+      await navigator.clipboard.writeText(assembled);
+
+      copyBtn.setText("Copied!");
+      setTimeout(() => {
+        copyBtn.setText("Copy prompt + text to clipboard");
+      }, 3000);
+
+      new Notice("Prompt copied to clipboard");
+    });
+  }
+
+  /**
+   * Creates a favorite star toggle button. Used in both list items and detail view.
+   * Pass `opts.afterToggle` for side effects after toggling (e.g. re-render list).
+   */
+  private createStarButton(
+    parent: HTMLElement,
+    template: Template,
+    btnCls: string,
+    activeCls: string,
+    opts?: { afterToggle?: () => void },
+  ): HTMLElement {
+    const isFav = this.isFavorite(template);
+    const btn = parent.createEl("button", {
+      cls: btnCls,
+      attr: { "aria-label": "Toggle favorite" },
+    });
+    btn.setText(isFav ? "\u2605" : "\u2606");
+    if (isFav) btn.addClass(activeCls);
+
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await this.toggleFavorite(template);
+      const nowFav = this.isFavorite(template);
+      btn.setText(nowFav ? "\u2605" : "\u2606");
+      btn.toggleClass(activeCls, nowFav);
+      opts?.afterToggle?.();
+    });
+
+    return btn;
+  }
+
+  private registerSelectionListener(callback: () => void) {
+    this.unregisterSelectionListener();
+
+    const ref1 = this.app.workspace.on("active-leaf-change", callback);
+    const ref2 = this.app.workspace.on("editor-change", callback);
+    this.registerEvent(ref1);
+    this.registerEvent(ref2);
+    this.selectionEventRefs = [ref1, ref2];
+
+    // editor-change doesn't fire on selection change, so listen for that via DOM
+    let timeout: number;
+    const debounced = () => {
+      clearTimeout(timeout);
+      timeout = window.setTimeout(callback, 100);
+    };
+    activeWindow.document.addEventListener("selectionchange", debounced);
+    this.selectionChangeDomHandler = debounced;
+  }
+
+  private unregisterSelectionListener() {
+    for (const ref of this.selectionEventRefs) {
+      this.app.workspace.offref(ref);
+    }
+    this.selectionEventRefs = [];
+
+    if (this.selectionChangeDomHandler) {
+      activeWindow.document.removeEventListener(
+        "selectionchange",
+        this.selectionChangeDomHandler,
+      );
+      this.selectionChangeDomHandler = null;
+    }
+  }
 }

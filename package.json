@@ -1,22 +1,39 @@
 {
-	"name": "obsidian-grab-a-prompt",
-	"version": "1.0.0",
-	"description": "Obsidian plugin for writer prompt templates",
-	"main": "main.js",
-	"scripts": {
-		"prebuild": "tsx scripts/pull-templates.ts",
-		"dev": "node esbuild.config.mjs",
-		"build": "npm run prebuild && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "MIT",
-	"devDependencies": {
-		"@types/node": "^22.0.0",
-		"builtin-modules": "^4.0.0",
-		"esbuild": "0.24.2",
-		"obsidian": "latest",
-		"tsx": "^4.0.0",
-		"typescript": "5.7.3"
-	}
+  "name": "obsidian-grab-a-prompt",
+  "version": "1.0.0",
+  "description": "Obsidian plugin for AI prompt templates for writers",
+  "main": "main.js",
+  "scripts": {
+    "prebuild": "tsx scripts/pull-templates.ts",
+    "dev": "node esbuild.config.mjs",
+    "build": "npm run prebuild && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "prompt",
+    "ai",
+    "llm",
+    "writing",
+    "templates",
+    "chatgpt",
+    "claude",
+    "writer",
+    "fiction",
+    "non-fiction",
+    "chatgpt",
+    "gemini",
+    "claude",
+    "library"
+  ],
+  "author": "grabaprompt.com",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "builtin-modules": "^4.0.0",
+    "esbuild": "0.24.2",
+    "obsidian": "latest",
+    "tsx": "^4.0.0",
+    "typescript": "5.7.3"
+  }
 }
