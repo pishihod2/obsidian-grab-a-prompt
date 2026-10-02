@@ -1,0 +1,8 @@
+[
+	{ "slug": "research", "name": "Research", "subheader": "Gather and analyze material", "legacyId": 4 },
+	{ "slug": "words-sentences", "name": "Words & sentences", "subheader": "Granular suggestions", "legacyId": 1 },
+	{ "slug": "editing", "name": "Editing", "subheader": "Full-doc checks", "legacyId": 2 },
+	{ "slug": "proofing", "name": "Proofing", "subheader": "Full-doc polishing", "legacyId": 3 },
+	{ "slug": "formatting", "name": "Formatting", "subheader": "Boring stuff", "legacyId": 5 },
+	{ "slug": "famous-writers", "name": "Famous writers", "subheader": "Feedback from the best", "legacyId": 6 }
+]

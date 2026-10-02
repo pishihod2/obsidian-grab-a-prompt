@@ -4,8 +4,11 @@ main.js
 # npm
 node_modules
 
-# Generated data (rebuilt from templates.json)
-src/data/templates.ts
-
 # Claude Code
 CLAUDE.md
+
+# macOS
+.DS_Store
+
+# Obsidian plugin settings (written here when the repo is symlinked into a vault)
+data.json

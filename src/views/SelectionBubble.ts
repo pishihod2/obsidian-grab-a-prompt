@@ -33,7 +33,7 @@ export class SelectionBubble {
 
 	register(): void {
 		const debounced = () => {
-			clearTimeout(this.debounceTimer);
+			window.clearTimeout(this.debounceTimer);
 			this.debounceTimer = window.setTimeout(() => this.onSelectionChange(), 150);
 		};
 		activeWindow.document.addEventListener("selectionchange", debounced);
@@ -59,7 +59,7 @@ export class SelectionBubble {
 		}
 		this.eventRefs = [];
 
-		clearTimeout(this.debounceTimer);
+		window.clearTimeout(this.debounceTimer);
 	}
 
 	// ---- Private ----
@@ -164,8 +164,10 @@ export class SelectionBubble {
 		}
 		if (left < 10) left = 10;
 
-		this.bubbleEl.style.top = `${top}px`;
-		this.bubbleEl.style.left = `${left}px`;
+		this.bubbleEl.setCssProps({
+			"--grab-a-prompt-bubble-top": `${top}px`,
+			"--grab-a-prompt-bubble-left": `${left}px`,
+		});
 	}
 
 	private hideBubble(): void {
@@ -208,7 +210,7 @@ export class SelectionBubble {
 			text: "Copy prompt to clipboard",
 		});
 
-		setTimeout(() => input.focus(), 0);
+		window.setTimeout(() => input.focus(), 0);
 
 		sendBtn.addEventListener("click", (e) => {
 			e.stopPropagation();
@@ -228,7 +230,7 @@ export class SelectionBubble {
 		});
 
 		// Click outside to dismiss (delayed to avoid catching the current click)
-		setTimeout(() => {
+		window.setTimeout(() => {
 			this.clickOutsideHandler = (e: MouseEvent) => {
 				if (this.bubbleEl && !this.bubbleEl.contains(e.target as Node)) {
 					this.hideBubble();

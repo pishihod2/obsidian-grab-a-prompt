@@ -560,6 +560,8 @@
 
 .grab-a-prompt-bubble {
 	position: fixed;
+	top: var(--grab-a-prompt-bubble-top);
+	left: var(--grab-a-prompt-bubble-left);
 	z-index: 1000;
 	display: flex;
 	align-items: center;
@@ -684,4 +686,33 @@
 
 .grab-a-prompt-confirm-delete-btn:hover {
 	opacity: 0.9;
+}
+
+/* icanwrite links */
+.grab-a-prompt-cta {
+	display: block;
+	margin: 0 12px 8px;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	text-decoration: none;
+}
+
+.grab-a-prompt-cta:hover {
+	color: var(--text-accent);
+	text-decoration: underline;
+}
+
+.grab-a-prompt-footer {
+	padding: 6px 12px;
+	border-top: 1px solid var(--background-modifier-border);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+}
+
+.grab-a-prompt-footer a {
+	color: var(--text-muted);
+}
+
+.grab-a-prompt-footer a:hover {
+	color: var(--text-accent);
 }

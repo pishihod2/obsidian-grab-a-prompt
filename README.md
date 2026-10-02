@@ -17,7 +17,7 @@ No typing prompts from scratch. No switching tabs to find that prompt you liked 
 
 - **Curated prompt templates** for research, summarizing, editing, proofing, brainstorming, and more
 - **One-click copy** — click a template and the assembled prompt is on your clipboard
-- **Auto-fill placeholders** — templates automatically include your full document, current selection, or active paragraph
+- **Auto-fill** — templates automatically include your full document, plus your current selection for templates that focus on a specific passage
 - **Search and filter** — find the right template instantly across all categories
 - **Favorites** — star the templates you use most for quick access
 - **Command palette integration** — search templates without leaving the keyboard
@@ -28,6 +28,12 @@ No typing prompts from scratch. No switching tabs to find that prompt you liked 
 
 Templates are curated at [grabaprompt.com](https://grabaprompt.com) and bundled into the plugin at build time. No network calls at runtime.
 
+## Made by icanwrite
+
+Grab a Prompt is made by [icanwrite](https://icanwrite.app), a free Markdown editor for writers that runs AI editing checks like these right inside your drafts — no copy-paste. Feedback comes back as comments in the sidebar, each tied to the passage it refers to, so you can work through them alongside your text. It works with your Obsidian vault.
+
+**Disclosure:** the plugin shows links to icanwrite in its own sidebar (below the template list and under the copy button) and in its settings tab. They are static links bundled with the plugin; nothing is loaded from the network and the plugin collects no data. The links include UTM parameters, so icanwrite.app can see that a visit came from this plugin. You can hide the sidebar links in **Settings → Grab a Prompt → Show icanwrite links**.
+
 ## Feedback
 
-Found a bug or have a template idea? Open an issue on [GitHub](https://github.com/pishihod2/obsidian-grab-a-prompt/issues) or visit [grabaprompt.com](https://grabaprompt.com).
+Found a bug or have a template idea? Open an issue on [GitHub](https://github.com/pishihod2/obsidian-grab-a-prompt/issues).

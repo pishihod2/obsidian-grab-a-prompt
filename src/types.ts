@@ -1,12 +1,12 @@
 export interface Category {
-	id: number;
+	id: string;
 	name: string | null;
 	subheader: string | null;
 	position: number | null;
 }
 
 export interface Template {
-	id: number | string;
+	id: string;
 	name: string | null;
 	prompt: string | null;
 	shortDescription: string | null;
@@ -28,8 +28,13 @@ export interface UserTemplate {
 	hasFocusText: boolean;
 }
 
+export interface LegacyIds {
+	templates: Record<string, string>;
+	categories: Record<string, string>;
+}
+
 export const USER_TEMPLATE_CATEGORY: Category = {
-	id: -1,
+	id: "user",
 	name: "My templates",
 	subheader: null,
 	position: -1,
