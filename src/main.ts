@@ -6,7 +6,8 @@ import type { GrabAPromptSettings } from "./settings";
 import { TemplateSuggestModal } from "./modals/TemplateSuggestModal";
 import type { UserTemplate } from "./types";
 import { getAllTemplates } from "./data/group";
-import { templates } from "./data/templates";
+import { migrateLegacyIds } from "./data/migrate";
+import templates, { legacyIds } from "virtual:templates";
 
 export default class GrabAPromptPlugin extends Plugin {
 	settings: GrabAPromptSettings = DEFAULT_SETTINGS;
@@ -69,10 +70,20 @@ export default class GrabAPromptPlugin extends Plugin {
 	async loadSettings() {
 		const saved = await this.loadData() as Record<string, unknown> | null;
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
+		let migrated = false;
 
 		// Migrate renamed setting: hideBuiltInTemplates → showBuiltInTemplates
 		if (saved && "hideBuiltInTemplates" in saved && !("showBuiltInTemplates" in saved)) {
 			this.settings.showBuiltInTemplates = !saved.hideBuiltInTemplates;
+			migrated = true;
+		}
+
+		// Migrate 1.0.0 numeric template/category ids to slugs
+		if (migrateLegacyIds(this.settings, legacyIds)) {
+			migrated = true;
+		}
+
+		if (migrated) {
 			await this.saveData(this.settings);
 		}
 	}

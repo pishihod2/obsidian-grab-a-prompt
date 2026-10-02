@@ -1,15 +1,17 @@
 import { PluginSettingTab, App, Setting } from "obsidian";
 import type GrabAPromptPlugin from "./main";
 import type { UserTemplate } from "./types";
+import { icanwriteUrl } from "./links";
 
 export interface GrabAPromptSettings {
-  favorites: (number | string)[];
+  favorites: string[];
   userTemplates: UserTemplate[];
   enableSelectionTooltip: boolean;
   enableQuickPrompt: boolean;
   enableMyTemplates: boolean;
   showBuiltInTemplates: boolean;
   collapsedCategories: string[];
+  showIcanwriteLinks: boolean;
 }
 
 export const DEFAULT_SETTINGS: GrabAPromptSettings = {
@@ -20,6 +22,7 @@ export const DEFAULT_SETTINGS: GrabAPromptSettings = {
   enableMyTemplates: true,
   showBuiltInTemplates: true,
   collapsedCategories: [],
+  showIcanwriteLinks: true,
 };
 
 export class GrabAPromptSettingTab extends PluginSettingTab {
@@ -84,5 +87,31 @@ export class GrabAPromptSettingTab extends PluginSettingTab {
             }),
         );
     }
+
+    new Setting(containerEl).setName("About").setHeading();
+
+    new Setting(containerEl)
+      .setName("Made by icanwrite")
+      .setDesc("This plugin is made by icanwrite, a free Markdown editor that runs AI editing checks like these on your drafts and returns the feedback as sidebar comments, each tied to the passage it refers to. Works with Obsidian vaults.")
+      .addButton((button) =>
+        button
+          .setButtonText("Visit icanwrite")
+          .onClick(() => {
+            window.open(icanwriteUrl("settings"));
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Show icanwrite links")
+      .setDesc("Show links to icanwrite in the sidebar.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showIcanwriteLinks)
+          .onChange(async (value) => {
+            this.plugin.settings.showIcanwriteLinks = value;
+            await this.plugin.saveSettings();
+            this.plugin.refreshSidebar();
+          }),
+      );
   }
 }

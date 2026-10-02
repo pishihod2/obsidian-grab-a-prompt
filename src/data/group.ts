@@ -1,6 +1,10 @@
 import type { Template, TemplateGroup, UserTemplate } from "../types";
 import { USER_TEMPLATE_CATEGORY } from "../types";
 
+export function isUserTemplate(t: Template): boolean {
+	return t.category?.id === USER_TEMPLATE_CATEGORY.id;
+}
+
 export function toTemplate(ut: UserTemplate): Template {
 	return {
 		id: ut.id,
@@ -23,7 +27,7 @@ export function getAllTemplates(
 }
 
 export function groupTemplatesByCategory(templates: Template[]): TemplateGroup[] {
-	const categoryMap = new Map<number, TemplateGroup>();
+	const categoryMap = new Map<string, TemplateGroup>();
 
 	for (const template of templates) {
 		if (!template.category) continue;

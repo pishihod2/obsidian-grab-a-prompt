@@ -7,12 +7,13 @@ import {
 import type GrabAPromptPlugin from "../main";
 import type { Template, TemplateGroup } from "../types";
 import { USER_TEMPLATE_CATEGORY } from "../types";
-import { templates } from "../data/templates";
-import { groupTemplatesByCategory, getAllTemplates } from "../data/group";
+import templates from "virtual:templates";
+import { groupTemplatesByCategory, getAllTemplates, isUserTemplate } from "../data/group";
 import { assemblePrompt, assembleQuickPrompt, canCopy } from "../prompt/assemble";
 import { matchesFilter, getActiveMarkdownView } from "../utils";
 import { TemplateEditorModal } from "../modals/TemplateEditorModal";
 import { ConfirmModal } from "../modals/ConfirmModal";
+import { icanwriteUrl } from "../links";
 
 export const VIEW_TYPE = "grab-a-prompt-sidebar";
 
@@ -157,6 +158,14 @@ export class SidebarView extends ItemView {
     this.renderFavoritesSection(listContainer, lowerFilter, focusTextItems);
     this.renderMyTemplatesSection(listContainer, lowerFilter, focusTextItems);
     this.renderCategoryGroups(listContainer, lowerFilter, focusTextItems);
+
+    if (this.plugin.settings.showIcanwriteLinks) {
+      const footer = container.createDiv({ cls: "grab-a-prompt-footer" });
+      footer.createEl("a", {
+        text: "Made by icanwrite \u2014 Obsidian-friendly text editor with AI",
+        href: icanwriteUrl("footer"),
+      });
+    }
 
     // Update disabled state for hasFocusText items
     if (focusTextItems.length > 0) {
@@ -471,7 +480,7 @@ export class SidebarView extends ItemView {
     );
 
     // Edit/delete buttons for user templates
-    if (typeof template.id === "string") {
+    if (isUserTemplate(template)) {
       const actionsRow = container.createDiv({
         cls: "grab-a-prompt-detail-actions-row",
       });
@@ -497,7 +506,7 @@ export class SidebarView extends ItemView {
         new ConfirmModal(
           this.app,
           "Delete this template?",
-          () => { void this.plugin.deleteUserTemplate(template.id as string); },
+          () => { void this.plugin.deleteUserTemplate(template.id); },
         ).open();
       });
     }
@@ -524,6 +533,14 @@ export class SidebarView extends ItemView {
       cls: "grab-a-prompt-copy-btn",
       text: "Copy prompt + text to clipboard",
     });
+
+    if (this.plugin.settings.showIcanwriteLinks) {
+      container.createEl("a", {
+        cls: "grab-a-prompt-cta",
+        text: "Skip the copy-paste: icanwrite runs checks like this on your draft and pins feedback to each passage as sidebar comments →",
+        href: icanwriteUrl("detail"),
+      });
+    }
 
     const updateCopyState = () => {
       const editor = this.getEditor();
@@ -559,7 +576,7 @@ export class SidebarView extends ItemView {
       const assembled = assemblePrompt(template, editor);
       void navigator.clipboard.writeText(assembled).then(() => {
         copyBtn.setText("Copied!");
-        setTimeout(() => {
+        window.setTimeout(() => {
           copyBtn.setText("Copy prompt + text to clipboard");
         }, 3000);
 
@@ -612,7 +629,7 @@ export class SidebarView extends ItemView {
     // editor-change doesn't fire on selection change, so listen for that via DOM
     let timeout: number;
     const debounced = () => {
-      clearTimeout(timeout);
+      window.clearTimeout(timeout);
       timeout = window.setTimeout(callback, 100);
     };
     activeWindow.document.addEventListener("selectionchange", debounced);
