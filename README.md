@@ -1,6 +1,6 @@
 # Grab a Prompt
 
-A library of ready-made AI prompt templates for writers and everyone working with texts, right inside Obsidian (covers literary fiction, genre fiction, non-fiction, copywriting, content marketing, etc.). Pick a template for researching, summarizing, editing, proofing, or brainstorming — it auto-fills with your document or selection and copies to clipboard, ready to paste into ChatGPT, Claude, Gemini, or any LLM.
+A library of copy-ready AI prompts for writers and everyone working with texts, right inside Obsidian (literary fiction, genre fiction, non-fiction, copywriting, content marketing). Proofread, edit, summarize, research, or get feedback in the style of famous writers: pick a template, and it auto-fills with your note or selection and copies to clipboard, ready to paste into ChatGPT, Claude, Gemini, or any LLM. No API key and no account needed. Use the AI chat you already have.
 
 ![Grab a Prompt sidebar](screenshot.png)
 

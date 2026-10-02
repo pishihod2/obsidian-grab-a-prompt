@@ -1,9 +1,9 @@
 {
   "id": "grab-a-prompt",
   "name": "Grab a Prompt",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "minAppVersion": "1.7.2",
-  "description": "Ready-made AI prompt templates for writers — research, summarizing, editing, proofing, and more. Pick a template, auto-fill it with your document or selection, and copy to clipboard for ChatGPT, Claude, Gemini, or any LLM.",
+  "description": "Copy-ready AI prompts for writers: proofread, edit, summarize, research, and get feedback in the style of famous writers. Auto-fills your note or selection. Works with ChatGPT, Claude, Gemini, or any LLM — no API key.",
   "author": "icanwrite",
   "authorUrl": "https://icanwrite.app",
   "isDesktopOnly": false

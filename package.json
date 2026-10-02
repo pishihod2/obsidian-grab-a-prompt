@@ -1,7 +1,7 @@
 {
   "name": "obsidian-grab-a-prompt",
-  "version": "1.0.2",
-  "description": "Obsidian plugin for AI prompt templates for writers",
+  "version": "1.0.3",
+  "description": "Copy-ready AI prompts for writers in Obsidian, for ChatGPT, Claude, Gemini, or any LLM",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
