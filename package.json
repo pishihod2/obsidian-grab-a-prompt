@@ -1,6 +1,6 @@
 {
   "name": "obsidian-grab-a-prompt",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Obsidian plugin for AI prompt templates for writers",
   "main": "main.js",
   "scripts": {
